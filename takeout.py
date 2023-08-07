@@ -1,8 +1,10 @@
-import glob, os, zipfile
+import glob, os, shutil, zipfile
 
 class Migrate():
     def __init__(self):
-        self.output_folder_path = r'./MOVE_ME/'
+        self.output_file_path = r'./MOVE_ME/'
+        self.first_extracted_file_structure = r'./first_extracted/'
+        self.second_extracted_file_structure = r'./second_extracted/'
         self.all_zip_paths = glob.glob('*.zip')
         print('zip files to be extracted:')
         print(self.all_zip_paths)
@@ -25,8 +27,8 @@ class Migrate():
                 return
         
         # check for output folder
-        if os.path.isdir(self.output_folder_path):
-            print('WARNING: output folder ' + self.output_folder_path + ' exists!')
+        if os.path.isdir(self.first_extracted_file_structure):
+            print('WARNING: output folder ' + self.first_extracted_file_structure + ' exists!')
             folder_exists_user_input = input('press "q" then "Enter" to quit or "a" then "Enter" to proceed\n')
             print()
             while (folder_exists_user_input != 'q') and (folder_exists_user_input != 'a'):
@@ -42,21 +44,29 @@ class Migrate():
         for zip_path in self.all_zip_paths:
             print('extracting ' + zip_path + '...')
             new_zip_obj = zipfile.ZipFile(zip_path)
-            new_zip_obj.extractall(path = self.output_folder_path)
+            new_zip_obj.extractall(path = self.first_extracted_file_structure)
             new_zip_obj.close()
             print(zip_path + ' completed, moving on...')
             print()
 
-        print('all .zip files in the current directory have been extracted to ' + self.output_folder_path + ', rearranging folder structure')
+        print('all .zip files in the current directory have been extracted to ' + self.first_extracted_file_structure + ', rearranging folder structure')
         print()
 
-        # DELETE UNIMPORTANT FOLDERS WHILE RETAINING ALBUM NAMES (e.g. 'Photos from 2023')
-        # check if contains non paths and non .jsons
+        for entry in os.scandir(self.first_extracted_file_structure):
+            shutil.move(entry.path, self.second_extracted_file_structure)
+
+        os.rmdir(self.first_extracted_file_structure)
+
+        for entry in os.scandir(self.second_extracted_file_structure):
+            shutil.move(entry.path, self.output_file_path)
 
         print('folders rearranged, deleting .json files')
         print()
 
-        # DELETE ALL .json FILES FROM ALL DIRECTORIES
+        for entry in os.scandir(self.second_extracted_file_structure):
+            if os.path.isdir(entry):
+                all_current_folder_jsons = glob.glob(str(entry + '*.json'))
+                print(all_current_folder_jsons)
 
         print('completed!')
         print()
@@ -67,7 +77,7 @@ class Migrate():
             print('invalid input!')
             delete_zips_user_input = input('press "y" then "Enter" to delete the unneeded files or "n" then "Enter" to leave them alone\n')
         if delete_zips_user_input == 'n':
-            print('your files may be found in ' + self.output_folder_path + ', either rename that folder and move it to the directory of your choice' + \
+            print('your files may be found in ' + self.first_extracted_file_structure + ', either rename that folder and move it to the directory of your choice' + \
                 '(e.g. C://Users/YOUR_USERNAME/Pictures/) or drag its contents to a directory of your choice if you\'ve done this before')
             print('exiting...')
         if delete_zips_user_input == 'y':
@@ -78,7 +88,7 @@ class Migrate():
             print()
             print('all zip files have been deleted')
             print()
-            print('your files may be found in ' + self.output_folder_path + ', either rename that folder and move it to the directory of your choice' + \
+            print('your files may be found in ' + self.first_extracted_file_structure + ', either rename that folder and move it to the directory of your choice' + \
                 '(e.g. C://Users/YOUR_USERNAME/Pictures/) or drag its contents to a directory of your choice if you\'ve done this before')
             print('exiting...')
 

@@ -6,4 +6,5 @@ All takeout .zip files should be placed in an empty directory with the .py file
 No external prerequisites
 * glob
 * os
+* shutil
 * zipfile
