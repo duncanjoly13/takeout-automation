@@ -41,6 +41,7 @@ class Migrate():
                 print('proceeding...')
                 print()
 
+        # extract each zip to self.first_extracted_file_structure
         for zip_path in self.all_zip_paths:
             print('extracting ' + zip_path + '...')
             new_zip_obj = zipfile.ZipFile(zip_path)
@@ -52,22 +53,28 @@ class Migrate():
         print('all .zip files in the current directory have been extracted to ' + self.first_extracted_file_structure + ', rearranging folder structure')
         print()
 
+        # move files to self.second_extracted_file_structure and remove one irrelevant directory level
         for entry in os.scandir(self.first_extracted_file_structure):
             shutil.move(entry.path, self.second_extracted_file_structure)
 
+        # delete self.first_extracted_file_structure
         os.rmdir(self.first_extracted_file_structure)
 
+        # move files to self.output_file_path and remove the other irrelevant directory level
         for entry in os.scandir(self.second_extracted_file_structure):
             shutil.move(entry.path, self.output_file_path)
 
         print('folders rearranged, deleting .json files')
         print()
 
-        for entry in os.scandir(self.second_extracted_file_structure):
-            if os.path.isdir(entry):
-                all_current_folder_jsons = glob.glob(str(entry + '*.json'))
-                print(all_current_folder_jsons)
+        # delete all .json files
+        for file in glob.glob("**/*.json", recursive=True):
+            os.remove(file)
 
+        # delete self.second_extracted_file_structure
+        os.rmdir(self.second_extracted_file_structure)
+
+        # see if the user wants to delete the .zip files
         print('completed!')
         print()
         print('would you like to delete the zip files as they are no longer needed?')
